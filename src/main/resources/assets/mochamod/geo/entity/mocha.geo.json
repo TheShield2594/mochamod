@@ -54,26 +54,26 @@
         {
           "name": "ear_left",
           "parent": "head",
-          "pivot": [-3.5, 13, -7],
-          "rotation": [25, 0, -20],
+          "pivot": [-3.5, 13, -6],
+          "rotation": [10, 0, -15],
           "cubes": [
             {
-              "origin": [-4.5, 9, -8],
-              "size": [1, 4, 2],
-              "uv": [12, 13]
+              "origin": [-4.5, 7, -8.5],
+              "size": [1, 6, 4],
+              "uv": [0, 30]
             }
           ]
         },
         {
           "name": "ear_right",
           "parent": "head",
-          "pivot": [3.5, 13, -7],
-          "rotation": [25, 0, 20],
+          "pivot": [3.5, 13, -6],
+          "rotation": [10, 0, 15],
           "cubes": [
             {
-              "origin": [3.5, 9, -8],
-              "size": [1, 4, 2],
-              "uv": [18, 13]
+              "origin": [3.5, 7, -8.5],
+              "size": [1, 6, 4],
+              "uv": [10, 30]
             }
           ]
         },
@@ -81,12 +81,37 @@
           "name": "tail",
           "parent": "body",
           "pivot": [0, 10, 3.5],
-          "rotation": [-45, 0, 0],
+          "rotation": [-65, 0, 0],
           "cubes": [
             {
-              "origin": [-1, 9, 3],
+              "origin": [-1.5, 9, 3.5],
+              "size": [3, 3, 3],
+              "uv": [32, 13]
+            }
+          ]
+        },
+        {
+          "name": "tail_tip",
+          "parent": "tail",
+          "pivot": [0, 12, 6.5],
+          "rotation": [-70, 0, 0],
+          "cubes": [
+            {
+              "origin": [-1, 11, 6.5],
               "size": [2, 2, 2],
-              "uv": [24, 13]
+              "uv": [44, 13]
+            }
+          ]
+        },
+        {
+          "name": "ruff",
+          "parent": "body",
+          "pivot": [0, 8, -3.5],
+          "cubes": [
+            {
+              "origin": [-3, 7, -4.5],
+              "size": [6, 3, 2],
+              "uv": [0, 25]
             }
           ]
         },
