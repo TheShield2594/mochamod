@@ -54,26 +54,26 @@
         {
           "name": "ear_left",
           "parent": "head",
-          "pivot": [-3.5, 13, -7],
-          "rotation": [25, 0, -20],
+          "pivot": [-3.5, 13, -6],
+          "rotation": [10, 0, -15],
           "cubes": [
             {
-              "origin": [-4.5, 9, -8],
-              "size": [1, 4, 2],
-              "uv": [12, 13]
+              "origin": [-4.5, 7, -8.5],
+              "size": [1, 6, 4],
+              "uv": [0, 30]
             }
           ]
         },
         {
           "name": "ear_right",
           "parent": "head",
-          "pivot": [3.5, 13, -7],
-          "rotation": [25, 0, 20],
+          "pivot": [3.5, 13, -6],
+          "rotation": [10, 0, 15],
           "cubes": [
             {
-              "origin": [3.5, 9, -8],
-              "size": [1, 4, 2],
-              "uv": [18, 13]
+              "origin": [3.5, 7, -8.5],
+              "size": [1, 6, 4],
+              "uv": [10, 30]
             }
           ]
         },
