@@ -127,12 +127,11 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
         // Shake off after climbing out of the water, like a proper dog
         if (this.isInWater()) {
             this.wetFromSwimming = true;
-        } else if (this.wetFromSwimming && this.onGround()) {
+        } else if (this.wetFromSwimming && this.onGround() && !this.isOrderedToSit()) {
+            // Stays wet while sitting so she still shakes off once told to stand
             this.wetFromSwimming = false;
-            if (!this.isOrderedToSit()) {
-                this.triggerAnim("reaction", "shake");
-                this.playSound(SoundEvents.WOLF_SHAKE, 0.8F, 1.0F);
-            }
+            this.triggerAnim("reaction", "shake");
+            this.playSound(SoundEvents.WOLF_SHAKE, 0.8F, 1.0F);
         }
 
         // Occasional idle stretch (play bow), roughly every 20 seconds of standing around
