@@ -1,8 +1,8 @@
-package com.yourname.mochamod.event;
+package com.theshield2594.mochamod.event;
 
-import com.yourname.mochamod.MochaMod;
-import com.yourname.mochamod.entity.MochaEntity;
-import com.yourname.mochamod.registry.ModEntities;
+import com.theshield2594.mochamod.MochaMod;
+import com.theshield2594.mochamod.entity.MochaEntity;
+import com.theshield2594.mochamod.registry.ModEntities;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;

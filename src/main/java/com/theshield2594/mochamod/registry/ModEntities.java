@@ -1,7 +1,7 @@
-package com.yourname.mochamod.registry;
+package com.theshield2594.mochamod.registry;
 
-import com.yourname.mochamod.MochaMod;
-import com.yourname.mochamod.entity.MochaEntity;
+import com.theshield2594.mochamod.MochaMod;
+import com.theshield2594.mochamod.entity.MochaEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;

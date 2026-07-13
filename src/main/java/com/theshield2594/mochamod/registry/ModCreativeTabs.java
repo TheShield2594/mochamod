@@ -1,6 +1,6 @@
-package com.yourname.mochamod.registry;
+package com.theshield2594.mochamod.registry;
 
-import com.yourname.mochamod.MochaMod;
+import com.theshield2594.mochamod.MochaMod;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;

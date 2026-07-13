@@ -1,8 +1,8 @@
-package com.yourname.mochamod;
+package com.theshield2594.mochamod;
 
-import com.yourname.mochamod.registry.ModCreativeTabs;
-import com.yourname.mochamod.registry.ModEntities;
-import com.yourname.mochamod.registry.ModItems;
+import com.theshield2594.mochamod.registry.ModCreativeTabs;
+import com.theshield2594.mochamod.registry.ModEntities;
+import com.theshield2594.mochamod.registry.ModItems;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
