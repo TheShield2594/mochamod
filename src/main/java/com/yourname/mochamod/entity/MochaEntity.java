@@ -37,6 +37,10 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected static final RawAnimation IDLE_ANIM = RawAnimation.begin().thenLoop("animation.mocha.idle");
     protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("animation.mocha.walk");
+    protected static final RawAnimation SIT_ANIM = RawAnimation.begin()
+            .thenPlay("animation.mocha.sit_down")
+            .thenLoop("animation.mocha.sit_idle");
+    protected static final RawAnimation TAME_ANIM = RawAnimation.begin().thenPlay("animation.mocha.tame");
 
     private static final float HEAL_AMOUNT = 4.0F;
 
@@ -102,6 +106,7 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
                 this.setTarget(null);
                 this.setOrderedToSit(true);
                 this.level().broadcastEntityEvent(this, (byte) 7); // heart particles
+                this.triggerAnim("reaction", "tame");
             } else {
                 this.level().broadcastEntityEvent(this, (byte) 6); // smoke particles
             }
@@ -167,13 +172,22 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>(this, "movement", 3, this::movementAnimController));
+        controllers.add(new AnimationController<>(this, "reaction", 3, this::reactionAnimController)
+                .triggerableAnim("tame", TAME_ANIM));
     }
 
     protected <E extends MochaEntity> PlayState movementAnimController(AnimationState<E> state) {
+        if (this.isOrderedToSit()) {
+            return state.setAndContinue(SIT_ANIM);
+        }
         if (state.isMoving()) {
             return state.setAndContinue(WALK_ANIM);
         }
         return state.setAndContinue(IDLE_ANIM);
+    }
+
+    protected <E extends MochaEntity> PlayState reactionAnimController(AnimationState<E> state) {
+        return PlayState.STOP;
     }
 
     @Override
