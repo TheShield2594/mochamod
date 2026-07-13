@@ -40,11 +40,18 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected static final RawAnimation SIT_ANIM = RawAnimation.begin()
             .thenPlay("animation.mocha.sit_down")
             .thenLoop("animation.mocha.sit_idle");
+    protected static final RawAnimation SIT_REST_ANIM = RawAnimation.begin()
+            .thenPlay("animation.mocha.sit_settle")
+            .thenLoop("animation.mocha.sit_rest");
     protected static final RawAnimation TAME_ANIM = RawAnimation.begin().thenPlay("animation.mocha.tame");
+
+    /** Ticks (client-side, render predicate only) spent continuously sitting before settling into a deeper rest pose. */
+    private static final int SIT_SETTLE_TICKS = 100;
 
     private static final float HEAL_AMOUNT = 4.0F;
 
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
+    private int sitStillTicks;
 
     public MochaEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
@@ -178,8 +185,12 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
 
     protected <E extends MochaEntity> PlayState movementAnimController(AnimationState<E> state) {
         if (this.isOrderedToSit()) {
-            return state.setAndContinue(SIT_ANIM);
+            if (this.sitStillTicks < SIT_SETTLE_TICKS) {
+                this.sitStillTicks++;
+            }
+            return state.setAndContinue(this.sitStillTicks >= SIT_SETTLE_TICKS ? SIT_REST_ANIM : SIT_ANIM);
         }
+        this.sitStillTicks = 0;
         if (state.isMoving()) {
             return state.setAndContinue(WALK_ANIM);
         }
