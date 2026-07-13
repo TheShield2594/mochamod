@@ -1,7 +1,7 @@
-package com.yourname.mochamod.registry;
+package com.theshield2594.mochamod.registry;
 
-import com.yourname.mochamod.MochaMod;
-import com.yourname.mochamod.item.MochaItem;
+import com.theshield2594.mochamod.MochaMod;
+import com.theshield2594.mochamod.item.MochaItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;

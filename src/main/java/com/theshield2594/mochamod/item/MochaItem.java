@@ -1,7 +1,7 @@
-package com.yourname.mochamod.item;
+package com.theshield2594.mochamod.item;
 
-import com.yourname.mochamod.entity.MochaEntity;
-import com.yourname.mochamod.registry.ModEntities;
+import com.theshield2594.mochamod.entity.MochaEntity;
+import com.theshield2594.mochamod.registry.ModEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;

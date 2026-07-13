@@ -1,7 +1,7 @@
-package com.yourname.mochamod.client.model;
+package com.theshield2594.mochamod.client.model;
 
-import com.yourname.mochamod.MochaMod;
-import com.yourname.mochamod.entity.MochaEntity;
+import com.theshield2594.mochamod.MochaMod;
+import com.theshield2594.mochamod.entity.MochaEntity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib.model.GeoModel;
 

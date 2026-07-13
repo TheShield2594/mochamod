@@ -1,4 +1,4 @@
-package com.yourname.mochamod.entity;
+package com.theshield2594.mochamod.entity;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;

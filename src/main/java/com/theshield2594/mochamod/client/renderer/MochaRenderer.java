@@ -1,7 +1,7 @@
-package com.yourname.mochamod.client.renderer;
+package com.theshield2594.mochamod.client.renderer;
 
-import com.yourname.mochamod.client.model.MochaModel;
-import com.yourname.mochamod.entity.MochaEntity;
+import com.theshield2594.mochamod.client.model.MochaModel;
+import com.theshield2594.mochamod.entity.MochaEntity;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import software.bernie.geckolib.renderer.GeoEntityRenderer;
 

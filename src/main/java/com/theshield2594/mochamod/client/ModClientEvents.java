@@ -1,8 +1,8 @@
-package com.yourname.mochamod.client;
+package com.theshield2594.mochamod.client;
 
-import com.yourname.mochamod.MochaMod;
-import com.yourname.mochamod.client.renderer.MochaRenderer;
-import com.yourname.mochamod.registry.ModEntities;
+import com.theshield2594.mochamod.MochaMod;
+import com.theshield2594.mochamod.client.renderer.MochaRenderer;
+import com.theshield2594.mochamod.registry.ModEntities;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
