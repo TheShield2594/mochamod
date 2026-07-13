@@ -18,6 +18,11 @@
         {
           "name": "body",
           "parent": "root",
+          "pivot": [0, 7, 0]
+        },
+        {
+          "name": "torso",
+          "parent": "body",
           "pivot": [0, 7, 0],
           "cubes": [
             {
@@ -29,7 +34,7 @@
         },
         {
           "name": "head",
-          "parent": "body",
+          "parent": "torso",
           "pivot": [0, 10, -3.5],
           "cubes": [
             {
@@ -105,7 +110,7 @@
         },
         {
           "name": "tail",
-          "parent": "body",
+          "parent": "torso",
           "pivot": [0, 10, 3.5],
           "rotation": [65, 0, 0],
           "cubes": [
@@ -144,7 +149,7 @@
         },
         {
           "name": "ruff",
-          "parent": "body",
+          "parent": "torso",
           "pivot": [0, 8, -3.5],
           "cubes": [
             {
