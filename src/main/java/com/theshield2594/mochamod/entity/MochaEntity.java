@@ -12,16 +12,27 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
+import net.minecraft.world.entity.ai.goal.LeapAtTargetGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -43,6 +54,8 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected static final RawAnimation WALK_ANIM = RawAnimation.begin().thenLoop("animation.mocha.walk");
     protected static final RawAnimation RUN_ANIM = RawAnimation.begin().thenLoop("animation.mocha.run");
     protected static final RawAnimation SWIM_ANIM = RawAnimation.begin().thenLoop("animation.mocha.swim");
+    protected static final RawAnimation AIRBORNE_ANIM = RawAnimation.begin().thenLoop("animation.mocha.airborne");
+    protected static final RawAnimation ANGRY_ANIM = RawAnimation.begin().thenLoop("animation.mocha.angry");
     protected static final RawAnimation BEG_ANIM = RawAnimation.begin().thenLoop("animation.mocha.beg");
     protected static final RawAnimation SIT_ANIM = RawAnimation.begin()
             .thenPlay("animation.mocha.sit_down")
@@ -60,6 +73,9 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected static final RawAnimation EAT_ANIM = RawAnimation.begin().thenPlay("animation.mocha.eat");
     protected static final RawAnimation SHAKE_ANIM = RawAnimation.begin().thenPlay("animation.mocha.shake");
     protected static final RawAnimation STRETCH_ANIM = RawAnimation.begin().thenPlay("animation.mocha.stretch");
+    protected static final RawAnimation ATTACK_ANIM = RawAnimation.begin().thenPlay("animation.mocha.attack");
+    protected static final RawAnimation HURT_ANIM = RawAnimation.begin().thenPlay("animation.mocha.hurt");
+    protected static final RawAnimation LAND_ANIM = RawAnimation.begin().thenPlay("animation.mocha.land");
 
     private static final EntityDataAccessor<Boolean> DATA_BEGGING =
             SynchedEntityData.defineId(MochaEntity.class, EntityDataSerializers.BOOLEAN);
@@ -76,10 +92,15 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
 
     private static final float HEAL_AMOUNT = 4.0F;
 
+    /** Downward blocks-per-tick beyond which touching down plays the landing squash (roughly a 2-block fall). */
+    private static final double LAND_ANIM_FALL_SPEED = -0.5D;
+
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int sitStillTicks;
     private boolean standUpPending;
     private boolean wetFromSwimming;
+    private boolean wasOnGround = true;
+    private double lastFallSpeed;
 
     public MochaEntity(EntityType<? extends TamableAnimal> entityType, Level level) {
         super(entityType, level);
@@ -89,7 +110,8 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     public static AttributeSupplier.Builder createAttributes() {
         return TamableAnimal.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)
-                .add(Attributes.MOVEMENT_SPEED, 0.25D);
+                .add(Attributes.MOVEMENT_SPEED, 0.25D)
+                .add(Attributes.ATTACK_DAMAGE, 3.0D);
     }
 
     @Override
@@ -102,11 +124,16 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
         this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
-        this.goalSelector.addGoal(3, new MochaBegGoal(this, 8.0F));
-        this.goalSelector.addGoal(4, new FollowOwnerGoal(this, 1.3D, 10.0F, 2.0F));
+        this.goalSelector.addGoal(3, new LeapAtTargetGoal(this, 0.4F));
+        this.goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.2D, true));
+        this.goalSelector.addGoal(5, new FollowOwnerGoal(this, 1.3D, 10.0F, 2.0F));
         this.goalSelector.addGoal(6, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(7, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(7, new MochaBegGoal(this, 8.0F));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(9, new RandomLookAroundGoal(this));
+        this.targetSelector.addGoal(1, new OwnerHurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new OwnerHurtTargetGoal(this));
+        this.targetSelector.addGoal(3, new HurtByTargetGoal(this).setAlertOthers());
     }
 
     @Override
@@ -139,6 +166,15 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
                 && this.getNavigation().isDone() && this.random.nextInt(400) == 0) {
             this.triggerAnim("reaction", "stretch");
         }
+
+        // Landing squash after a real fall; velocity is captured a tick behind because
+        // the collision has already zeroed it by the time this runs
+        boolean grounded = this.onGround();
+        if (grounded && !this.wasOnGround && !this.isInWater() && this.lastFallSpeed < LAND_ANIM_FALL_SPEED) {
+            this.triggerAnim("reaction", "land");
+        }
+        this.wasOnGround = grounded;
+        this.lastFallSpeed = this.getDeltaMovement().y;
     }
 
     public boolean isBegging() {
@@ -214,6 +250,47 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     }
 
     @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (this.isInvulnerableTo(source)) {
+            return false;
+        }
+        if (!this.level().isClientSide) {
+            this.setOrderedToSit(false);
+        }
+        boolean hurt = super.hurt(source, amount);
+        if (hurt && !this.level().isClientSide) {
+            this.triggerAnim("reaction", "hurt");
+        }
+        return hurt;
+    }
+
+    @Override
+    public boolean doHurtTarget(Entity target) {
+        // Fires before the damage lands so the lunge still plays against a raised shield
+        this.triggerAnim("reaction", "attack");
+        return super.doHurtTarget(target);
+    }
+
+    /** Same exclusions as the vanilla wolf: no creepers, ghasts, or another owner's pets. */
+    @Override
+    public boolean wantsToAttack(LivingEntity target, LivingEntity owner) {
+        if (target instanceof Creeper || target instanceof Ghast || target instanceof ArmorStand) {
+            return false;
+        }
+        if (target instanceof MochaEntity otherMocha) {
+            return !otherMocha.isTame() || otherMocha.getOwner() != owner;
+        }
+        if (target instanceof Player targetPlayer && owner instanceof Player ownerPlayer
+                && !ownerPlayer.canHarmPlayer(targetPlayer)) {
+            return false;
+        }
+        if (target instanceof AbstractHorse horse && horse.isTamed()) {
+            return false;
+        }
+        return !(target instanceof TamableAnimal tamable) || !tamable.isTame();
+    }
+
+    @Override
     public boolean isFood(ItemStack stack) {
         return false;
     }
@@ -237,7 +314,7 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     @Nullable
     @Override
     protected SoundEvent getAmbientSound() {
-        return SoundEvents.WOLF_AMBIENT;
+        return this.isAggressive() ? SoundEvents.WOLF_GROWL : SoundEvents.WOLF_AMBIENT;
     }
 
     @Nullable
@@ -270,7 +347,10 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
                 .triggerableAnim("tame", TAME_ANIM)
                 .triggerableAnim("eat", EAT_ANIM)
                 .triggerableAnim("shake", SHAKE_ANIM)
-                .triggerableAnim("stretch", STRETCH_ANIM));
+                .triggerableAnim("stretch", STRETCH_ANIM)
+                .triggerableAnim("attack", ATTACK_ANIM)
+                .triggerableAnim("hurt", HURT_ANIM)
+                .triggerableAnim("land", LAND_ANIM));
     }
 
     protected <E extends MochaEntity> PlayState movementAnimController(AnimationState<E> state) {
@@ -287,6 +367,12 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
             this.standUpPending = false;
             state.getController().setAnimationSpeed(1.0D);
             return state.setAndContinue(SWIM_ANIM);
+        }
+
+        if (!this.onGround()) {
+            this.standUpPending = false;
+            state.getController().setAnimationSpeed(1.0D);
+            return state.setAndContinue(AIRBORNE_ANIM);
         }
 
         if (state.isMoving()) {
@@ -310,6 +396,10 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     }
 
     protected <E extends MochaEntity> PlayState expressionAnimController(AnimationState<E> state) {
+        // Ears pinned back and tail held stiff for the whole fight, layered over walk/run
+        if (this.isAggressive() && !this.isOrderedToSit() && !this.isInWater()) {
+            return state.setAndContinue(ANGRY_ANIM);
+        }
         if (this.isBegging() && !this.isOrderedToSit() && !state.isMoving() && !this.isInWater()) {
             return state.setAndContinue(BEG_ANIM);
         }

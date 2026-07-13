@@ -15,6 +15,8 @@ public class MochaModel extends GeoModel<MochaEntity> {
             ResourceLocation.fromNamespaceAndPath(MochaMod.MODID, "geo/entity/mocha.geo.json");
     private static final ResourceLocation TEXTURE =
             ResourceLocation.fromNamespaceAndPath(MochaMod.MODID, "textures/entity/mocha.png");
+    private static final ResourceLocation SLEEPING_TEXTURE =
+            ResourceLocation.fromNamespaceAndPath(MochaMod.MODID, "textures/entity/mocha_sleeping.png");
     private static final ResourceLocation ANIMATIONS =
             ResourceLocation.fromNamespaceAndPath(MochaMod.MODID, "animations/mocha.animation.json");
 
@@ -25,7 +27,7 @@ public class MochaModel extends GeoModel<MochaEntity> {
 
     @Override
     public ResourceLocation getTextureResource(MochaEntity animatable) {
-        return TEXTURE;
+        return animatable.isVisuallySleeping() ? SLEEPING_TEXTURE : TEXTURE;
     }
 
     @Override
