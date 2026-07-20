@@ -14,8 +14,9 @@ public final class ModEntities {
 
     public static final DeferredHolder<EntityType<?>, EntityType<MochaEntity>> MOCHA =
             ENTITY_TYPES.register("mocha", () -> EntityType.Builder.of(MochaEntity::new, MobCategory.CREATURE)
-                    .sized(0.6F, 0.85F)
-                    .eyeHeight(0.68F)
+                    // A ~6 lb dog, not a wolf: a bit bigger than the vanilla chicken (0.4 x 0.7).
+                    .sized(0.42F, 0.6F)
+                    .eyeHeight(0.48F)
                     .clientTrackingRange(10)
                     .build("mocha"));
 
