@@ -317,6 +317,14 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
         return this.isAggressive() ? SoundEvents.WOLF_GROWL : SoundEvents.WOLF_AMBIENT;
     }
 
+    @Override
+    public float getVoicePitch() {
+        // Mocha is scaled down to a small dog (see MochaRenderer.SIZE_SCALE), but the wolf
+        // bark/growl/hurt/death sounds are recorded for a full-size wolf. Pitch them up so she
+        // sounds like a small dog instead of a wolf, the same trick vanilla uses for baby mobs.
+        return (this.random.nextFloat() - this.random.nextFloat()) * 0.2F + 1.5F;
+    }
+
     @Nullable
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
