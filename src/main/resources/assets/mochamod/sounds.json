@@ -1,0 +1,92 @@
+{
+  "entity.mocha.ambient": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.ambient",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.ambient"
+  },
+  "entity.mocha.growl": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.growl",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.growl"
+  },
+  "entity.mocha.pant": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.pant",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.pant"
+  },
+  "entity.mocha.whine": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.whine",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.whine"
+  },
+  "entity.mocha.snore": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.fox.sleep",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.snore"
+  },
+  "entity.mocha.hurt": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.hurt",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.hurt"
+  },
+  "entity.mocha.death": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.death",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.death"
+  },
+  "entity.mocha.shake": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.shake",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.shake"
+  },
+  "entity.mocha.step": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.wolf.step",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.block.generic.footsteps"
+  },
+  "entity.mocha.eat": {
+    "sounds": [
+      {
+        "name": "minecraft:entity.generic.eat",
+        "type": "event"
+      }
+    ],
+    "subtitle": "subtitles.mochamod.entity.mocha.eat"
+  }
+}

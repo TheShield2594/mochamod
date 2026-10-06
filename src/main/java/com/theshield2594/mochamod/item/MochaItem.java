@@ -7,6 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -14,8 +15,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 
 /**
- * A craftable item that spawns a {@link MochaEntity} when right-clicked on the ground.
- * Intentionally not a spawn egg.
+ * A craftable item that spawns a {@link MochaEntity} when right-clicked on the ground,
+ * already tamed to whoever placed her. Intentionally not a spawn egg.
  */
 public class MochaItem extends Item {
     public MochaItem(Properties properties) {
@@ -47,7 +48,14 @@ public class MochaItem extends Item {
                 !clickedPos.equals(spawnPos) && face == Direction.UP);
 
         if (mocha != null) {
-            stack.shrink(1);
+            Player player = context.getPlayer();
+            if (player != null) {
+                // You crafted her, so she's already yours: no bones needed
+                mocha.tame(player);
+                serverLevel.broadcastEntityEvent(mocha, (byte) 7); // heart particles
+            }
+            // consume() rather than shrink() so creative players keep the item, like a spawn egg
+            stack.consume(1, context.getPlayer());
             level.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, spawnPos);
         }
 

@@ -1,8 +1,10 @@
 package com.theshield2594.mochamod.entity;
 
+import com.theshield2594.mochamod.registry.ModSounds;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -79,6 +81,8 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
 
     private static final EntityDataAccessor<Boolean> DATA_BEGGING =
             SynchedEntityData.defineId(MochaEntity.class, EntityDataSerializers.BOOLEAN);
+    private static final EntityDataAccessor<Boolean> DATA_WET =
+            SynchedEntityData.defineId(MochaEntity.class, EntityDataSerializers.BOOLEAN);
 
     /** Ticks spent continuously sitting before settling into a deeper rest pose. */
     private static final int SIT_SETTLE_TICKS = 100;
@@ -95,10 +99,13 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     /** Downward blocks-per-tick beyond which touching down plays the landing squash (roughly a 2-block fall). */
     private static final double LAND_ANIM_FALL_SPEED = -0.5D;
 
+    /** Length of animation.mocha.shake in ticks; water flies off her coat for most of it. */
+    private static final int SHAKE_TICKS = 22;
+
     private final AnimatableInstanceCache geoCache = GeckoLibUtil.createInstanceCache(this);
     private int sitStillTicks;
     private boolean standUpPending;
-    private boolean wetFromSwimming;
+    private int shakeTicks;
     private boolean wasOnGround = true;
     private double lastFallSpeed;
 
@@ -118,6 +125,7 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_BEGGING, false);
+        builder.define(DATA_WET, false);
     }
 
     @Override
@@ -140,25 +148,41 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide) {
-            if (this.isOrderedToSit()) {
-                if (this.sitStillTicks < SLEEP_TICKS) {
-                    this.sitStillTicks++;
-                }
-            } else {
-                this.sitStillTicks = 0;
+        // Counted on both sides: the client drives the sit/rest/sleep poses from it, the server
+        // keeps her quiet (bar the odd snore) once she has dozed off. Uses the synced sitting pose,
+        // since isOrderedToSit() is server-only and always false on the client.
+        if (this.isInSittingPose()) {
+            if (this.sitStillTicks < SLEEP_TICKS) {
+                this.sitStillTicks++;
             }
+        } else {
+            this.sitStillTicks = 0;
+        }
+
+        if (this.level().isClientSide) {
             return;
         }
 
         // Shake off after climbing out of the water, like a proper dog
         if (this.isInWater()) {
-            this.wetFromSwimming = true;
-        } else if (this.wetFromSwimming && this.onGround() && !this.isOrderedToSit()) {
+            this.setWet(true);
+            this.shakeTicks = 0;
+        } else if (this.isWet() && this.shakeTicks == 0 && this.onGround() && !this.isOrderedToSit()) {
             // Stays wet while sitting so she still shakes off once told to stand
-            this.wetFromSwimming = false;
+            this.shakeTicks = SHAKE_TICKS;
             this.triggerAnim("reaction", "shake");
-            this.playSound(SoundEvents.WOLF_SHAKE, 0.8F, 1.0F);
+            this.playSound(ModSounds.MOCHA_SHAKE.get(), this.getSoundVolume(), this.getVoicePitch());
+        }
+        if (this.shakeTicks > 0) {
+            this.shakeTicks--;
+            if (this.shakeTicks > 4 && this.level() instanceof ServerLevel serverLevel) {
+                // Spray from around her coat while the shake animation whips her body side to side
+                serverLevel.sendParticles(ParticleTypes.SPLASH, this.getX(), this.getY() + this.getBbHeight() * 0.7D,
+                        this.getZ(), 3, this.getBbWidth() * 0.6D, 0.1D, this.getBbWidth() * 0.6D, 0.0D);
+            }
+            if (this.shakeTicks == 0) {
+                this.setWet(false);
+            }
         }
 
         // Occasional idle stretch (play bow), roughly every 20 seconds of standing around
@@ -185,9 +209,18 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
         this.entityData.set(DATA_BEGGING, begging);
     }
 
-    /** Client-side render state: true once she has dozed off after sitting long enough. */
+    /** True once she has dozed off after sitting long enough; drives the sleep pose and closed eyes. */
     public boolean isVisuallySleeping() {
-        return this.isOrderedToSit() && this.sitStillTicks >= SLEEP_TICKS;
+        return this.isInSittingPose() && this.sitStillTicks >= SLEEP_TICKS;
+    }
+
+    /** Synced so the renderer can darken her coat until she has shaken off. */
+    public boolean isWet() {
+        return this.entityData.get(DATA_WET);
+    }
+
+    private void setWet(boolean wet) {
+        this.entityData.set(DATA_WET, wet);
     }
 
     /** Items worth begging for: a bone before taming, healing food afterwards. */
@@ -210,8 +243,9 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
             // Feeding: cooked chicken or cooked beef heals 4 HP
             if (isHealingFood(stack) && this.getHealth() < this.getMaxHealth()) {
                 this.heal(HEAL_AMOUNT);
+                this.spawnEatingParticles(stack);
                 stack.consume(1, player);
-                this.playSound(SoundEvents.GENERIC_EAT, 1.0F, 1.0F);
+                this.playSound(ModSounds.MOCHA_EAT.get(), 1.0F, this.getVoicePitch());
                 this.gameEvent(GameEvent.EAT);
                 this.triggerAnim("reaction", "eat");
                 return InteractionResult.SUCCESS;
@@ -243,6 +277,16 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
         }
 
         return super.mobInteract(player, hand);
+    }
+
+    private void spawnEatingParticles(ItemStack food) {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            // Crumbs of whatever she was fed, dropped from just in front of her snout
+            double mouthX = this.getX() - Mth.sin(this.yBodyRot * Mth.DEG_TO_RAD) * 0.35D;
+            double mouthZ = this.getZ() + Mth.cos(this.yBodyRot * Mth.DEG_TO_RAD) * 0.35D;
+            serverLevel.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, food.copyWithCount(1)),
+                    mouthX, this.getY() + this.getBbHeight() * 0.55D, mouthZ, 8, 0.08D, 0.05D, 0.08D, 0.05D);
+        }
     }
 
     static boolean isHealingFood(ItemStack stack) {
@@ -314,7 +358,25 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     @Nullable
     @Override
     protected SoundEvent getAmbientSound() {
-        return this.isAggressive() ? SoundEvents.WOLF_GROWL : SoundEvents.WOLF_AMBIENT;
+        if (this.isVisuallySleeping()) {
+            return ModSounds.MOCHA_SNORE.get();
+        }
+        if (this.isAggressive()) {
+            return ModSounds.MOCHA_GROWL.get();
+        }
+        // Same mix as the vanilla wolf: mostly barks, sometimes panting, whimpers when hurt
+        if (this.random.nextInt(3) == 0) {
+            return this.isTame() && this.getHealth() < this.getMaxHealth()
+                    ? ModSounds.MOCHA_WHINE.get()
+                    : ModSounds.MOCHA_PANT.get();
+        }
+        return ModSounds.MOCHA_AMBIENT.get();
+    }
+
+    @Override
+    protected float getSoundVolume() {
+        // Matches the vanilla wolf; at the default 1.0 she was louder than a full-size wolf
+        return 0.4F;
     }
 
     @Override
@@ -328,18 +390,18 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
     @Nullable
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.WOLF_HURT;
+        return ModSounds.MOCHA_HURT.get();
     }
 
     @Nullable
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.WOLF_DEATH;
+        return ModSounds.MOCHA_DEATH.get();
     }
 
     @Override
     protected void playStepSound(net.minecraft.core.BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
-        this.playSound(SoundEvents.WOLF_STEP, 0.15F, 1.0F);
+        this.playSound(ModSounds.MOCHA_STEP.get(), 0.15F, 1.3F);
     }
 
     @Override
@@ -361,8 +423,10 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
                 .triggerableAnim("land", LAND_ANIM));
     }
 
+    // Client-side controllers below must read isInSittingPose(), the synced flag: isOrderedToSit()
+    // is never sent to the client, so checking it here would leave her standing forever.
     protected <E extends MochaEntity> PlayState movementAnimController(AnimationState<E> state) {
-        if (this.isOrderedToSit()) {
+        if (this.isInSittingPose()) {
             this.standUpPending = true;
             state.getController().setAnimationSpeed(1.0D);
             if (this.sitStillTicks >= SLEEP_TICKS) {
@@ -405,10 +469,10 @@ public class MochaEntity extends TamableAnimal implements GeoEntity {
 
     protected <E extends MochaEntity> PlayState expressionAnimController(AnimationState<E> state) {
         // Ears pinned back and tail held stiff for the whole fight, layered over walk/run
-        if (this.isAggressive() && !this.isOrderedToSit() && !this.isInWater()) {
+        if (this.isAggressive() && !this.isInSittingPose() && !this.isInWater()) {
             return state.setAndContinue(ANGRY_ANIM);
         }
-        if (this.isBegging() && !this.isOrderedToSit() && !state.isMoving() && !this.isInWater()) {
+        if (this.isBegging() && !this.isInSittingPose() && !state.isMoving() && !this.isInWater()) {
             return state.setAndContinue(BEG_ANIM);
         }
         return PlayState.STOP;
