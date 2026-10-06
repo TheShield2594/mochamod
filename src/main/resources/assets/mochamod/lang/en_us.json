@@ -1,5 +1,14 @@
 {
   "item.mochamod.mocha": "Mocha",
   "entity.mochamod.mocha": "Mocha",
-  "itemGroup.mochamod": "Mocha Mod"
+  "itemGroup.mochamod": "Mocha Mod",
+  "subtitles.mochamod.entity.mocha.ambient": "Mocha barks",
+  "subtitles.mochamod.entity.mocha.growl": "Mocha growls",
+  "subtitles.mochamod.entity.mocha.pant": "Mocha pants",
+  "subtitles.mochamod.entity.mocha.whine": "Mocha whines",
+  "subtitles.mochamod.entity.mocha.snore": "Mocha snores",
+  "subtitles.mochamod.entity.mocha.hurt": "Mocha hurts",
+  "subtitles.mochamod.entity.mocha.death": "Mocha dies",
+  "subtitles.mochamod.entity.mocha.shake": "Mocha shakes",
+  "subtitles.mochamod.entity.mocha.eat": "Mocha eats"
 }

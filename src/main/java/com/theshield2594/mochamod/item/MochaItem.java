@@ -47,7 +47,8 @@ public class MochaItem extends Item {
                 !clickedPos.equals(spawnPos) && face == Direction.UP);
 
         if (mocha != null) {
-            stack.shrink(1);
+            // consume() rather than shrink() so creative players keep the item, like a spawn egg
+            stack.consume(1, context.getPlayer());
             level.gameEvent(context.getPlayer(), GameEvent.ENTITY_PLACE, spawnPos);
         }
 
