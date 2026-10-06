@@ -4,12 +4,13 @@ A NeoForge 1.21.1 mod that adds **Mocha**, a tameable, GeckoLib-animated compani
 
 ## Features
 
-- **MochaEntity** — a small, tameable `TamableAnimal` companion. Tame her with a bone
-  (33% chance, like the vanilla wolf); once tamed she follows you, sits on command, and
+- **MochaEntity** — a small, tameable `TamableAnimal` companion. A Mocha placed from the
+  item is yours straight away; one spawned any other way (e.g. `/summon`) can be tamed with
+  a bone (33% chance, like the vanilla wolf). Once tamed she follows you, sits on command, and
   defends you with wolf-style combat AI. 20 HP, never despawns, and her tamed state and
   owner persist through save/load.
 - **Mocha item** — a craftable item (not a spawn egg) that spawns Mocha when
-  right-clicked on the ground. Recipe: 4 brown wool + 4 white wool + 1 bone meal (shapeless).
+  right-clicked on the ground, already tamed to whoever placed her. Recipe: 4 brown wool + 4 white wool + 1 bone meal (shapeless).
 - **Feeding** — right-click a tamed Mocha with cooked chicken or cooked beef to heal her 4 HP.
 - **Creative tab** — a "Mocha Mod" tab with the Mocha item as its icon.
 
